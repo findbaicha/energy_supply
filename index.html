@@ -82,7 +82,7 @@
             position: relative;
             margin: 0 auto 40px auto;
             display: flex;
-            flex-direction: column-reverse;
+            flex-direction: column-reverse; /* 从底向上堆叠 */
             padding: 5px;
             gap: 5px;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
@@ -104,8 +104,8 @@
             width: 100%;
             flex: 1;
             border-radius: 4px;
-            opacity: 0.2;
-            transition: all 0.3s ease;
+            opacity: 0.2; /* 默认非活跃状态 */
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -114,19 +114,24 @@
             font-size: 0.8rem;
         }
 
-        /* 自动充电动画：只有在父容器没有被 hover 时才激活 */
+        /* 新的逐格堆叠充电动画：仅在非 manual 模式下 */
         .battery-container:not(.manual-mode) .battery-level {
-            animation: charging 4s infinite;
+            animation: stackCharging 5s infinite ease-in-out;
         }
 
-        .battery-level:nth-child(1) { animation-delay: 0s !important; }
-        .battery-level:nth-child(2) { animation-delay: 1s !important; }
-        .battery-level:nth-child(3) { animation-delay: 2s !important; }
-        .battery-level:nth-child(4) { animation-delay: 3s !important; }
+        /* 设置每格的动画延迟，实现依次亮起 */
+        .battery-level:nth-child(1) { animation-delay: 0s; }
+        .battery-level:nth-child(2) { animation-delay: 1s; }
+        .battery-level:nth-child(3) { animation-delay: 2s; }
+        .battery-level:nth-child(4) { animation-delay: 3s; }
 
-        @keyframes charging {
-            0%, 25% { opacity: 0.2; box-shadow: none; color: #000; }
-            12% { opacity: 1; box-shadow: 0 0 10px currentColor; color: #fff; }
+        /* 关键帧：从不亮到全亮，保持一段时间后重置 */
+        @keyframes stackCharging {
+            0% { opacity: 0.2; box-shadow: none; color: #000; }
+            /* 在各自的延迟时间点到达后，迅速变为活跃状态并保持 */
+            5%, 75% { opacity: 1; box-shadow: 0 0 10px currentColor; color: #fff; }
+            /* 周期结束前统一重置，准备开始下一轮堆叠 */
+            85%, 100% { opacity: 0.2; box-shadow: none; color: #000; }
         }
 
         /* 磁贴网格 */
@@ -138,7 +143,6 @@
             max-width: 1000px;
         }
 
-        /* 将 card 改为链接样式 */
         .card {
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
@@ -147,7 +151,7 @@
             transition: transform 0.3s, box-shadow 0.3s;
             position: relative;
             overflow: hidden;
-            text-decoration: none; /* 去除链接下划线 */
+            text-decoration: none;
             color: var(--text-main);
             display: block;
             cursor: pointer;
@@ -202,13 +206,6 @@
             color: var(--text-main);
         }
 
-        .highlight-code {
-            background-color: #2d333b;
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: var(--term-green);
-        }
-
         .badge {
             display: inline-block;
             padding: 3px 8px;
@@ -248,43 +245,29 @@
     </div>
 
     <div class="grid-container">
-        
         <a href="body.html" class="card card-body" onmouseenter="lightUp('bat-body', true)" onmouseleave="lightUp('bat-body', false)">
             <span class="badge" style="background-color: rgba(255, 123, 114, 0.2); color: var(--body-red);">Physical</span>
             <h2>🔴 Body Charging</h2>
-            <p><strong>革命本钱，拒绝脆皮。</strong></p>
-            <div class="smart-goal">
-                点击进入 Body 详情页获取体能补给指令...
-            </div>
+            <div class="smart-goal">点击进入 Body 详情页获取体能补给指令...</div>
         </a>
 
         <a href="brain.html" class="card card-mind" onmouseenter="lightUp('bat-mind', true)" onmouseleave="lightUp('bat-mind', false)">
             <span class="badge" style="background-color: rgba(121, 192, 255, 0.2); color: var(--mind-blue);">Mental</span>
             <h2>🔵 Brain Overclocking</h2>
-            <p><strong>智商高地，降维打击。</strong></p>
-            <div class="smart-goal">
-                点击进入 Brain 详情页开启飞行模式...
-            </div>
+            <div class="smart-goal">点击进入 Brain 详情页开启飞行模式...</div>
         </a>
 
         <a href="heart.html" class="card card-heart" onmouseenter="lightUp('bat-heart', true)" onmouseleave="lightUp('bat-heart', false)">
             <span class="badge" style="background-color: rgba(227, 179, 65, 0.2); color: var(--heart-yellow);">Emotional</span>
             <h2>💛 Heart Hole</h2>
-            <p><strong>情感避风港，焦虑清理。</strong></p>
-            <div class="smart-goal">
-                点击进入 Heart 详情页执行焦虑删除指令...
-            </div>
+            <div class="smart-goal">点击进入 Heart 详情页执行焦虑删除指令...</div>
         </a>
 
         <a href="soul.html" class="card card-soul" onmouseenter="lightUp('bat-soul', true)" onmouseleave="lightUp('bat-soul', false)">
             <span class="badge" style="background-color: rgba(126, 231, 135, 0.2); color: var(--soul-green);">Spiritual</span>
             <h2>🟢 Soul Oxygen Bar</h2>
-            <p><strong>寻找意义，内耗清零。</strong></p>
-            <div class="smart-goal">
-                点击进入 Soul 详情页开始灵魂深度SPA...
-            </div>
+            <div class="smart-goal">点击进入 Soul 详情页开始灵魂深度SPA...</div>
         </a>
-
     </div>
 
     <div class="footer">
@@ -292,7 +275,6 @@
     </div>
 
     <script>
-        // 打字机逻辑
         const textToType = "admin@Youth-OS:~$ sudo apt --update\nadmin@Youth-OS:~$ sudo apt install habit7";
         const typewriterElement = document.getElementById('typewriter');
         const loadingElement = document.getElementById('loading');
@@ -315,19 +297,16 @@
             }
         }
 
-        // 鼠标悬停逻辑
         const batteryContainer = document.getElementById('main-battery');
 
         function lightUp(batteryId, isHovering) {
             const batElement = document.getElementById(batteryId);
             if (isHovering) {
-                // 进入手动模式，停止自动动画
                 batteryContainer.classList.add('manual-mode');
                 batElement.style.opacity = '1';
                 batElement.style.boxShadow = `0 0 15px ${batElement.style.backgroundColor}`;
                 batElement.style.color = '#fff';
             } else {
-                // 离开手动模式，恢复自动动画
                 batteryContainer.classList.remove('manual-mode');
                 batElement.style.opacity = '0.2';
                 batElement.style.boxShadow = 'none';
