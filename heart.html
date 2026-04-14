@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Firewall | Heart</title>
+    <style>
+        :root { --main-color: #e3b341; --bg: #0d1117; }
+        body { background: var(--bg); color: #c9d1d9; font-family: monospace; padding: 40px; text-align: center; }
+        .nav { text-align: left; margin-bottom: 40px; }
+        .nav a { color: var(--main-color); text-decoration: none; }
+        .heart-icon { font-size: 5rem; color: var(--main-color); animation: beat 1s infinite; }
+        @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .log-container { background: #161b22; border-radius: 10px; padding: 20px; max-width: 600px; margin: 20px auto; text-align: left; }
+        .log-entry { border-bottom: 1px solid #30363d; padding: 8px 0; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="nav"><a href="index.html">root@Youth-OS</a> / heart / emotional_security</div>
+    <div class="heart-icon">💛</div>
+    <h2>情绪防火墙已启动</h2>
+    <div class="log-container">
+        <div class="log-entry"><span style="color:var(--main-color)">[INFO]</span> 正在拦截外部压力信号...</div>
+        <div class="log-entry"><span style="color:var(--main-color)">[INFO]</span> 成功删除 "焦虑.tmp" 文件。</div>
+        <div class="log-entry"><span style="color:var(--main-color)">[INFO]</span> 正在与好友建立加密通信链路...</div>
+    </div>
+</body>
+</html>

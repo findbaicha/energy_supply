@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5LW专属能量补给站 | 习惯7</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --text-main: #c9d1d9;
+            --term-green: #39d353;
+            --body-red: #ff7b72;
+            --mind-blue: #79c0ff;
+            --heart-yellow: #e3b341;
+            --soul-green: #7ee787;
+            --border-color: #30363d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Consolas', 'Courier New', Courier, monospace, 'Microsoft YaHei';
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 终端样式 */
+        .terminal-header {
+            width: 100%;
+            max-width: 1000px;
+            background-color: #000;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 15px rgba(57, 211, 83, 0.2);
+        }
+
+        .terminal-text {
+            color: var(--term-green);
+            font-size: 1.1rem;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 18px;
+            background-color: var(--term-green);
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .main-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            letter-spacing: 2px;
+        }
+
+        /* 电池容器 */
+        .battery-container {
+            width: 120px;
+            height: 250px;
+            border: 4px solid var(--text-main);
+            border-radius: 10px;
+            position: relative;
+            margin: 0 auto 40px auto;
+            display: flex;
+            flex-direction: column-reverse;
+            padding: 5px;
+            gap: 5px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .battery-container::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 10px;
+            background-color: var(--text-main);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .battery-level {
+            width: 100%;
+            flex: 1;
+            border-radius: 4px;
+            opacity: 0.2;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000;
+            font-size: 0.8rem;
+        }
+
+        /* 自动充电动画：只有在父容器没有被 hover 时才激活 */
+        .battery-container:not(.manual-mode) .battery-level {
+            animation: charging 4s infinite;
+        }
+
+        .battery-level:nth-child(1) { animation-delay: 0s !important; }
+        .battery-level:nth-child(2) { animation-delay: 1s !important; }
+        .battery-level:nth-child(3) { animation-delay: 2s !important; }
+        .battery-level:nth-child(4) { animation-delay: 3s !important; }
+
+        @keyframes charging {
+            0%, 25% { opacity: 0.2; box-shadow: none; color: #000; }
+            12% { opacity: 1; box-shadow: 0 0 10px currentColor; color: #fff; }
+        }
+
+        /* 磁贴网格 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        /* 将 card 改为链接样式 */
+        .card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none; /* 去除链接下划线 */
+            color: var(--text-main);
+            display: block;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+
+        .card-body:hover { box-shadow: 0 0 20px rgba(255, 123, 114, 0.3); }
+        .card-body::before { background-color: var(--body-red); }
+        .card-body h2 { color: var(--body-red); }
+
+        .card-mind:hover { box-shadow: 0 0 20px rgba(121, 192, 255, 0.3); }
+        .card-mind::before { background-color: var(--mind-blue); }
+        .card-mind h2 { color: var(--mind-blue); }
+
+        .card-heart:hover { box-shadow: 0 0 20px rgba(227, 179, 65, 0.3); }
+        .card-heart::before { background-color: var(--heart-yellow); }
+        .card-heart h2 { color: var(--heart-yellow); }
+
+        .card-soul:hover { box-shadow: 0 0 20px rgba(126, 231, 135, 0.3); }
+        .card-soul::before { background-color: var(--soul-green); }
+        .card-soul h2 { color: var(--soul-green); }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p { margin-bottom: 10px; }
+        
+        .smart-goal {
+            background-color: rgba(0,0,0,0.4);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #555;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .highlight-code {
+            background-color: #2d333b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--term-green);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="terminal-header">
+        <div class="terminal-text" id="typewriter"></div>
+        <div class="terminal-text" id="loading" style="display:none; margin-top:10px;">
+            [=====================] 100% Complete!<br>
+            admin@Youth-OS:~$ reboot<br>
+            SYSTEM REBOOTING...
+        </div>
+    </div>
+
+    <h1 class="main-title">5LW 专属能量补给站</h1>
+
+    <div class="battery-container" id="main-battery">
+        <div class="battery-level" style="background-color: var(--body-red);" id="bat-body">Body</div>
+        <div class="battery-level" style="background-color: var(--mind-blue);" id="bat-mind">Mind</div>
+        <div class="battery-level" style="background-color: var(--heart-yellow);" id="bat-heart">Heart</div>
+        <div class="battery-level" style="background-color: var(--soul-green);" id="bat-soul">Soul</div>
+    </div>
+
+    <div class="grid-container">
+        
+        <a href="body.html" class="card card-body" onmouseenter="lightUp('bat-body', true)" onmouseleave="lightUp('bat-body', false)">
+            <span class="badge" style="background-color: rgba(255, 123, 114, 0.2); color: var(--body-red);">Physical</span>
+            <h2>🔴 Body Charging</h2>
+            <p><strong>革命本钱，拒绝脆皮。</strong></p>
+            <div class="smart-goal">
+                点击进入 Body 详情页获取体能补给指令...
+            </div>
+        </a>
+
+        <a href="brain.html" class="card card-mind" onmouseenter="lightUp('bat-mind', true)" onmouseleave="lightUp('bat-mind', false)">
+            <span class="badge" style="background-color: rgba(121, 192, 255, 0.2); color: var(--mind-blue);">Mental</span>
+            <h2>🔵 Brain Overclocking</h2>
+            <p><strong>智商高地，降维打击。</strong></p>
+            <div class="smart-goal">
+                点击进入 Brain 详情页开启飞行模式...
+            </div>
+        </a>
+
+        <a href="heart.html" class="card card-heart" onmouseenter="lightUp('bat-heart', true)" onmouseleave="lightUp('bat-heart', false)">
+            <span class="badge" style="background-color: rgba(227, 179, 65, 0.2); color: var(--heart-yellow);">Emotional</span>
+            <h2>💛 Heart Hole</h2>
+            <p><strong>情感避风港，焦虑清理。</strong></p>
+            <div class="smart-goal">
+                点击进入 Heart 详情页执行焦虑删除指令...
+            </div>
+        </a>
+
+        <a href="soul.html" class="card card-soul" onmouseenter="lightUp('bat-soul', true)" onmouseleave="lightUp('bat-soul', false)">
+            <span class="badge" style="background-color: rgba(126, 231, 135, 0.2); color: var(--soul-green);">Spiritual</span>
+            <h2>🟢 Soul Oxygen Bar</h2>
+            <p><strong>寻找意义，内耗清零。</strong></p>
+            <div class="smart-goal">
+                点击进入 Soul 详情页开始灵魂深度SPA...
+            </div>
+        </a>
+
+    </div>
+
+    <div class="footer">
+        Powered by Youth-OS | 习惯7：不断更新 —— 及时为自己输入 sudo apt --update
+    </div>
+
+    <script>
+        // 打字机逻辑
+        const textToType = "admin@Youth-OS:~$ sudo apt --update\nadmin@Youth-OS:~$ sudo apt install habit7";
+        const typewriterElement = document.getElementById('typewriter');
+        const loadingElement = document.getElementById('loading');
+        let i = 0;
+
+        function typeWriter() {
+            if (i < textToType.length) {
+                if (textToType.charAt(i) === '\n') {
+                    typewriterElement.innerHTML += '<br>';
+                } else {
+                    typewriterElement.innerHTML += textToType.charAt(i);
+                }
+                i++;
+                setTimeout(typeWriter, 50);
+            } else {
+                typewriterElement.innerHTML += '<span class="cursor"></span>';
+                setTimeout(() => {
+                    loadingElement.style.display = "block";
+                }, 500);
+            }
+        }
+
+        // 鼠标悬停逻辑
+        const batteryContainer = document.getElementById('main-battery');
+
+        function lightUp(batteryId, isHovering) {
+            const batElement = document.getElementById(batteryId);
+            if (isHovering) {
+                // 进入手动模式，停止自动动画
+                batteryContainer.classList.add('manual-mode');
+                batElement.style.opacity = '1';
+                batElement.style.boxShadow = `0 0 15px ${batElement.style.backgroundColor}`;
+                batElement.style.color = '#fff';
+            } else {
+                // 离开手动模式，恢复自动动画
+                batteryContainer.classList.remove('manual-mode');
+                batElement.style.opacity = '0.2';
+                batElement.style.boxShadow = 'none';
+                batElement.style.color = '#000';
+            }
+        }
+
+        window.onload = () => {
+            setTimeout(typeWriter, 500);
+        };
+    </script>
+</body>
+</html>
