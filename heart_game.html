@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>情绪匹配 · Heart Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body {
+            background: #0d1117;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            touch-action: manipulation;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            color: #e3b341;
+            text-decoration: none;
+            font-size: 1.2rem;
+            padding: 8px 12px;
+            border: 1px solid #e3b341;
+            border-radius: 20px;
+        }
+        .score {
+            color: #e3b341;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .game-area {
+            background: #161b22;
+            border: 2px solid #e3b341;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(227,179,65,0.2);
+        }
+        h2 {
+            color: #e3b341;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .card {
+            aspect-ratio: 1;
+            background: #30363d;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            border: 2px solid transparent;
+        }
+        .card.flipped {
+            background: #e3b341;
+            border-color: #fff;
+        }
+        .card.matched {
+            background: #7ee787;
+            opacity: 0.6;
+            cursor: default;
+        }
+        .card.matched .emoji {
+            opacity: 0.8;
+        }
+        .progress {
+            color: #e3b341;
+            text-align: center;
+            font-size: 1.1rem;
+            margin: 10px 0;
+        }
+        .btn {
+            background: #e3b341;
+            color: #0d1117;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 15px;
+            touch-action: manipulation;
+        }
+        .btn:active { transform: scale(0.98); }
+        .message {
+            text-align: center;
+            color: #c9d1d9;
+            min-height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <a href="heart" class="back-btn">← 返回</a>
+            <div class="score">💛 <span id="scoreDisplay">0</span></div>
+        </div>
+        
+        <div class="game-area">
+            <h2>💛 情绪连连看</h2>
+            <div class="progress">
+                <span id="pairsMatched">0</span>/<span id="totalPairs">8</span> 对
+            </div>
+            <div class="grid-container" id="gameGrid"></div>
+            <div class="message" id="messageDisplay">匹配相同的情绪~</div>
+            <button class="btn" onclick="resetGame()">🔄 重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const emotions = ['😊', '😌', '🤗', '💪', '🧘', '💛', '⭐', '✨'];
+        let cards = [];
+        let flippedIndexes = [];
+        let matchedPairs = 0;
+        let score = 0;
+        let canFlip = true;
+        
+        const gameGrid = document.getElementById('gameGrid');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const pairsMatched = document.getElementById('pairsMatched');
+        const totalPairs = document.getElementById('totalPairs');
+        const messageDisplay = document.getElementById('messageDisplay');
+        
+        totalPairs.textContent = emotions.length;
+        
+        function initGame() {
+            // 创建配对卡片
+            cards = [...emotions, ...emotions];
+            // 洗牌
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            
+            matchedPairs = 0;
+            score = 0;
+            flippedIndexes = [];
+            canFlip = true;
+            updateDisplay();
+            renderGrid();
+            messageDisplay.textContent = '匹配相同的情绪~';
+        }
+        
+        function renderGrid() {
+            gameGrid.innerHTML = '';
+            cards.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = index;
+                card.dataset.emoji = emoji;
+                card.dataset.matched = 'false';
+                
+                const emojiSpan = document.createElement('span');
+                emojiSpan.className = 'emoji';
+                emojiSpan.textContent = '?';
+                emojiSpan.style.fontSize = '2rem';
+                
+                card.appendChild(emojiSpan);
+                
+                card.addEventListener('click', () => flipCard(index));
+                card.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    flipCard(index);
+                });
+                
+                gameGrid.appendChild(card);
+            });
+        }
+        
+        function flipCard(index) {
+            const card = gameGrid.children[index];
+            
+            if (!canFlip) return;
+            if (card.classList.contains('flipped')) return;
+            if (card.classList.contains('matched')) return;
+            if (flippedIndexes.includes(index)) return;
+            if (flippedIndexes.length >= 2) return;
+            
+            // 翻开卡片
+            card.classList.add('flipped');
+            card.querySelector('.emoji').textContent = cards[index];
+            flippedIndexes.push(index);
+            
+            if (flippedIndexes.length === 2) {
+                checkMatch();
+            }
+        }
+        
+        function checkMatch() {
+            canFlip = false;
+            const [idx1, idx2] = flippedIndexes;
+            const card1 = gameGrid.children[idx1];
+            const card2 = gameGrid.children[idx2];
+            const emoji1 = cards[idx1];
+            const emoji2 = cards[idx2];
+            
+            if (emoji1 === emoji2) {
+                // 匹配成功
+                setTimeout(() => {
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    card1.dataset.matched = 'true';
+                    card2.dataset.matched = 'true';
+                    
+                    matchedPairs++;
+                    score += 10;
+                    updateDisplay();
+                    
+                    messageDisplay.textContent = `✅ 匹配成功！ +10分`;
+                    
+                    flippedIndexes = [];
+                    canFlip = true;
+                    
+                    if (matchedPairs === emotions.length) {
+                        messageDisplay.textContent = `🎉 恭喜！你赢了！总分: ${score}`;
+                        setTimeout(() => {
+                            alert(`游戏完成！\n总分: ${score}\n你成功匹配了所有情绪！`);
+                        }, 100);
+                    }
+                }, 300);
+            } else {
+                // 匹配失败
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    card1.querySelector('.emoji').textContent = '?';
+                    card2.querySelector('.emoji').textContent = '?';
+                    
+                    flippedIndexes = [];
+                    canFlip = true;
+                    messageDisplay.textContent = '❌ 再试试看~';
+                }, 600);
+            }
+        }
+        
+        function updateDisplay() {
+            scoreDisplay.textContent = score;
+            pairsMatched.textContent = matchedPairs;
+        }
+        
+        function resetGame() {
+            initGame();
+        }
+        
+        // 开始游戏
+        initGame();
+    </script>
+</body>
+</html>

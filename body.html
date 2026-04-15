@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Hardware Check | Body</title>
     <style>
         :root { --main-color: #ff7b72; --bg: #0d1117; --panel: #161b22; }
@@ -15,6 +16,37 @@
         .progress-bar { height: 10px; background: #30363d; border-radius: 5px; margin-top: 10px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--main-color); width: 65%; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        /* 游戏入口样式 */
+        .game-entrance {
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255,123,114,0.15), rgba(255,123,114,0.05));
+            border: 1px dashed var(--main-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .game-entrance:hover {
+            background: rgba(255,123,114,0.2);
+            box-shadow: 0 0 20px rgba(255,123,114,0.2);
+        }
+        .game-entrance a {
+            color: var(--main-color);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .game-icon {
+            font-size: 2rem;
+            animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
     </style>
 </head>
 <body>
@@ -33,6 +65,15 @@
         </div>
         <p style="margin-top: 20px;">> 指令：<b>sudo run exercise.sh --intensity medium</b></p>
         <p>> 建议：去操场慢跑，清理久坐产生的系统缓存。</p>
+        
+        <!-- ===== 游戏入口在这里！第 70-76 行 ===== -->
+        <div class="game-entrance" onclick="location.href='body_game.html'">
+            <div>
+                <span style="color: var(--main-color); font-size: 1.1rem;">🎮 体能训练小游戏</span>
+                <p style="margin-top: 5px; opacity: 0.8; font-size: 0.9rem;">点击开始 · 测试你的反应速度</p>
+            </div>
+            <div class="game-icon">🏃‍♂️</div>
+        </div>
     </div>
 </body>
 </html>

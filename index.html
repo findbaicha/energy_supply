@@ -229,9 +229,6 @@
     <div class="terminal-header">
         <div class="terminal-text" id="typewriter"></div>
         <div class="terminal-text" id="loading" style="display:none; margin-top:10px;">
-            [=====================] 100% Complete!<br>
-            admin@Youth-OS:~$ reboot<br>
-            SYSTEM REBOOTING...
         </div>
     </div>
 
@@ -273,9 +270,13 @@
     <div class="footer">
         Powered by Youth-OS | 习惯7：不断更新 —— 及时为自己输入 sudo apt --update
     </div>
-
+<!--
+            [=====================] 100% Complete!<br>
+            admin@Youth-OS:~$ reboot<br>
+            SYSTEM REBOOTING...
+-->
     <script>
-        const textToType = "admin@Youth-OS:~$ sudo apt --update\nadmin@Youth-OS:~$ sudo apt install habit7";
+        const textToType = "admin@Youth-OS:~$ sudo apt install --update\n[==========================================] 100% Complete!\nadmin@Youth-OS:~$ sudo apt install habit7\n[==========================================] 100% Complete!\nadmin@Youth-OS:~$ reboot\nSYSTEM REBOOTING...\n";
         const typewriterElement = document.getElementById('typewriter');
         const loadingElement = document.getElementById('loading');
         let i = 0;

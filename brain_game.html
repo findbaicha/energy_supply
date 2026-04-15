@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>记忆挑战 · Brain Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body {
+            background: #0d1117;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            touch-action: manipulation;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            color: #79c0ff;
+            text-decoration: none;
+            font-size: 1.2rem;
+            padding: 8px 12px;
+            border: 1px solid #79c0ff;
+            border-radius: 20px;
+        }
+        .score {
+            color: #79c0ff;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .game-area {
+            background: #161b22;
+            border: 2px solid #79c0ff;
+            border-radius: 20px;
+            padding: 30px 20px;
+            box-shadow: 0 0 30px rgba(121,192,255,0.2);
+        }
+        h2 {
+            color: #79c0ff;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .level-display {
+            text-align: center;
+            color: #79c0ff;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .number-display {
+            font-size: 4rem;
+            text-align: center;
+            color: #79c0ff;
+            font-weight: bold;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 10px;
+            text-shadow: 0 0 20px rgba(121,192,255,0.5);
+        }
+        .input-area {
+            margin: 20px 0;
+        }
+        .digit-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .digit-btn {
+            aspect-ratio: 1;
+            background: #30363d;
+            border: 1px solid #79c0ff;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #79c0ff;
+            cursor: pointer;
+            transition: all 0.1s;
+            touch-action: manipulation;
+        }
+        .digit-btn:active {
+            background: #79c0ff;
+            color: #0d1117;
+        }
+        .user-input {
+            background: #0d1117;
+            border: 2px solid #79c0ff;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 2rem;
+            text-align: center;
+            color: #79c0ff;
+            letter-spacing: 5px;
+            margin: 15px 0;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            background: #79c0ff;
+            color: #0d1117;
+            border: none;
+            padding: 15px 20px;
+            font-size: 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+            touch-action: manipulation;
+        }
+        .btn-secondary {
+            background: #30363d;
+            color: #79c0ff;
+            border: 1px solid #79c0ff;
+        }
+        .btn:active { transform: scale(0.98); }
+        .message {
+            text-align: center;
+            color: #c9d1d9;
+            margin-top: 15px;
+            min-height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <a href="brain" class="back-btn">← 返回</a>
+            <div class="score">🧠 <span id="scoreDisplay">0</span></div>
+        </div>
+        
+        <div class="game-area">
+            <h2>🧠 数字记忆</h2>
+            <div class="level-display">
+                关卡 <span id="levelDisplay">1</span>
+            </div>
+            <div class="number-display" id="numberDisplay">--</div>
+            <div class="user-input" id="userInput"></div>
+            
+            <div class="digit-pad" id="digitPad"></div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="clearInput()">清除</button>
+                <button class="btn" onclick="submitAnswer()">提交</button>
+            </div>
+            
+            <button class="btn" onclick="startNewGame()" style="margin-top: 15px; width: 100%;">
+                🔄 新游戏
+            </button>
+            
+            <div class="message" id="messageDisplay">记住数字，然后输入</div>
+        </div>
+    </div>
+
+    <script>
+        let level = 1;
+        let score = 0;
+        let currentNumber = '';
+        let userAnswer = '';
+        let gameState = 'showing'; // showing, inputting, result
+        
+        const levelDisplay = document.getElementById('levelDisplay');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const numberDisplay = document.getElementById('numberDisplay');
+        const userInput = document.getElementById('userInput');
+        const messageDisplay = document.getElementById('messageDisplay');
+        const digitPad = document.getElementById('digitPad');
+        
+        function initDigitPad() {
+            digitPad.innerHTML = '';
+            for (let i = 1; i <= 9; i++) {
+                const btn = document.createElement('div');
+                btn.className = 'digit-btn';
+                btn.textContent = i;
+                btn.addEventListener('click', () => addDigit(i));
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    addDigit(i);
+                });
+                digitPad.appendChild(btn);
+            }
+            // 添加0和删除键
+            const btn0 = document.createElement('div');
+            btn0.className = 'digit-btn';
+            btn0.textContent = '0';
+            btn0.addEventListener('click', () => addDigit(0));
+            btn0.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                addDigit(0);
+            });
+            digitPad.appendChild(btn0);
+            
+            const delBtn = document.createElement('div');
+            delBtn.className = 'digit-btn';
+            delBtn.textContent = '⌫';
+            delBtn.style.fontSize = '1.5rem';
+            delBtn.addEventListener('click', () => deleteDigit());
+            delBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                deleteDigit();
+            });
+            digitPad.appendChild(delBtn);
+        }
+        
+        function addDigit(digit) {
+            if (gameState !== 'inputting') return;
+            if (userAnswer.length < currentNumber.length) {
+                userAnswer += digit;
+                userInput.textContent = userAnswer;
+            }
+        }
+        
+        function deleteDigit() {
+            if (gameState !== 'inputting') return;
+            userAnswer = userAnswer.slice(0, -1);
+            userInput.textContent = userAnswer || '____';
+        }
+        
+        function clearInput() {
+            if (gameState !== 'inputting') return;
+            userAnswer = '';
+            userInput.textContent = '____';
+        }
+        
+        function generateNumber() {
+            let num = '';
+            const length = level + 2; // 关卡1=3位，关卡2=4位...
+            for (let i = 0; i < length; i++) {
+                num += Math.floor(Math.random() * 10);
+            }
+            return num;
+        }
+        
+        function showNumber() {
+            gameState = 'showing';
+            currentNumber = generateNumber();
+            numberDisplay.textContent = currentNumber;
+            userInput.textContent = '____';
+            userAnswer = '';
+            messageDisplay.textContent = `记住这 ${currentNumber.length} 位数字...`;
+            
+            setTimeout(() => {
+                numberDisplay.textContent = '????';
+                gameState = 'inputting';
+                messageDisplay.textContent = '输入你记住的数字';
+            }, 2000 + level * 500);
+        }
+        
+        function submitAnswer() {
+            if (gameState !== 'inputting') return;
+            
+            gameState = 'result';
+            
+            if (userAnswer === currentNumber) {
+                // 正确
+                const points = level * 10;
+                score += points;
+                level++;
+                
+                messageDisplay.textContent = `✅ 正确！ +${points}分！ 进入第${level}关`;
+                numberDisplay.textContent = currentNumber;
+                
+                updateDisplay();
+                
+                setTimeout(() => {
+                    showNumber();
+                }, 1500);
+            } else {
+                // 错误
+                messageDisplay.textContent = `❌ 错误！正确是: ${currentNumber}`;
+                numberDisplay.textContent = currentNumber;
+                
+                setTimeout(() => {
+                    alert(`游戏结束！\n最高关卡: ${level}\n总分: ${score}`);
+                    startNewGame();
+                }, 1500);
+            }
+        }
+        
+        function updateDisplay() {
+            levelDisplay.textContent = level;
+            scoreDisplay.textContent = score;
+        }
+        
+        function startNewGame() {
+            level = 1;
+            score = 0;
+            updateDisplay();
+            showNumber();
+        }
+        
+        // 初始化
+        initDigitPad();
+        startNewGame();
+    </script>
+</body>
+</html>

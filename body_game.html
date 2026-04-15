@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>体能反应 · Body Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body {
+            background: #0d1117;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            touch-action: manipulation;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            color: #ff7b72;
+            text-decoration: none;
+            font-size: 1.2rem;
+            padding: 8px 12px;
+            border: 1px solid #ff7b72;
+            border-radius: 20px;
+        }
+        .score {
+            color: #ff7b72;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .game-area {
+            background: #161b22;
+            border: 2px solid #ff7b72;
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255,123,114,0.2);
+        }
+        .target-circle {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            transition: all 0.1s;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .target-active {
+            background: #ff7b72 !important;
+            box-shadow: 0 0 50px #ff7b72 !important;
+        }
+        .message {
+            color: #c9d1d9;
+            font-size: 1.1rem;
+            margin: 15px 0;
+            min-height: 30px;
+        }
+        .timer {
+            font-size: 3rem;
+            color: #ff7b72;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .btn {
+            background: #ff7b72;
+            color: #0d1117;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+            touch-action: manipulation;
+        }
+        .btn:active { transform: scale(0.95); }
+        .instruction {
+            color: #8b949e;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+        }
+        .stat-box {
+            text-align: center;
+        }
+        .stat-value {
+            color: #ff7b72;
+            font-size: 1.5rem;
+        }
+        .stat-label {
+            color: #8b949e;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <a href="body" class="back-btn">← 返回</a>
+            <div class="score">🏃 <span id="scoreDisplay">0</span></div>
+        </div>
+        
+        <div class="game-area">
+            <h2 style="color: #ff7b72; margin-bottom: 10px;">🏋️ 反应力训练</h2>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="bestScore">0</div>
+                    <div class="stat-label">最快反应</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="roundCount">0/10</div>
+                    <div class="stat-label">回合</div>
+                </div>
+            </div>
+            
+            <div id="gameStatus" style="margin-bottom: 10px;">
+                <div class="timer" id="timerDisplay">--</div>
+                <div class="message" id="messageDisplay">点击「开始」训练</div>
+            </div>
+            
+            <div id="targetCircle" class="target-circle" style="background: #30363d;">
+                <span id="circleText">⚡</span>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button class="btn" id="actionBtn" onclick="gameAction()">开始训练</button>
+            </div>
+            
+            <div class="instruction">
+                绿色时快速点击！红色时不要点~<br>
+                测试你的反应速度和身体协调性
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let round = 0;
+        let bestReaction = 999;
+        let gameState = 'waiting'; // waiting, ready, active, result
+        let startTime = 0;
+        let timeoutId = null;
+        let canClick = false;
+        
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const bestScore = document.getElementById('bestScore');
+        const roundCount = document.getElementById('roundCount');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const messageDisplay = document.getElementById('messageDisplay');
+        const targetCircle = document.getElementById('targetCircle');
+        const circleText = document.getElementById('circleText');
+        const actionBtn = document.getElementById('actionBtn');
+        
+        function gameAction() {
+            if (gameState === 'waiting' || gameState === 'result') {
+                startNewRound();
+            } else if (gameState === 'ready' || gameState === 'active') {
+                if (canClick) {
+                    handleClick();
+                }
+            }
+        }
+        
+        function startNewRound() {
+            if (round >= 10) {
+                endGame();
+                return;
+            }
+            
+            gameState = 'ready';
+            canClick = false;
+            actionBtn.textContent = '等待红色...';
+            messageDisplay.textContent = '准备...';
+            timerDisplay.textContent = '--';
+            targetCircle.style.background = '#30363d';
+            circleText.textContent = '⏳';
+            
+            const delay = 1000 + Math.random() * 2000;
+            timeoutId = setTimeout(() => {
+                activateTarget();
+            }, delay);
+        }
+        
+        function activateTarget() {
+            gameState = 'active';
+            canClick = true;
+            startTime = Date.now();
+            actionBtn.textContent = '快点击！';
+            messageDisplay.textContent = '🔥 快点击！';
+            targetCircle.style.background = '#7ee787';
+            targetCircle.classList.add('target-active');
+            circleText.textContent = '🏃';
+            
+            timeoutId = setTimeout(() => {
+                if (gameState === 'active') {
+                    missTarget();
+                }
+            }, 1000);
+        }
+        
+        function handleClick() {
+            if (!canClick) return;
+            
+            const reactionTime = Date.now() - startTime;
+            canClick = false;
+            clearTimeout(timeoutId);
+            
+            if (reactionTime < bestReaction) {
+                bestReaction = reactionTime;
+                bestScore.textContent = bestReaction + 'ms';
+            }
+            
+            score += Math.max(10, 50 - Math.floor(reactionTime / 10));
+            scoreDisplay.textContent = score;
+            
+            timerDisplay.textContent = reactionTime + 'ms';
+            messageDisplay.textContent = `✅ 反应时间: ${reactionTime}ms`;
+            targetCircle.style.background = '#ff7b72';
+            circleText.textContent = '✅';
+            
+            round++;
+            roundCount.textContent = round + '/10';
+            
+            gameState = 'result';
+            actionBtn.textContent = '下一回合';
+            
+            setTimeout(() => {
+                if (round < 10 && gameState === 'result') {
+                    gameState = 'waiting';
+                    actionBtn.textContent = '开始下一回合';
+                }
+            }, 500);
+        }
+        
+        function missTarget() {
+            if (gameState !== 'active') return;
+            
+            canClick = false;
+            gameState = 'result';
+            messageDisplay.textContent = '❌ 太慢了！';
+            timerDisplay.textContent = '超时';
+            targetCircle.style.background = '#30363d';
+            circleText.textContent = '😴';
+            
+            round++;
+            roundCount.textContent = round + '/10';
+            
+            actionBtn.textContent = '下一回合';
+            
+            setTimeout(() => {
+                if (round < 10 && gameState === 'result') {
+                    gameState = 'waiting';
+                    actionBtn.textContent = '开始下一回合';
+                }
+            }, 500);
+        }
+        
+        function endGame() {
+            gameState = 'waiting';
+            canClick = false;
+            messageDisplay.textContent = `🎉 训练完成！得分: ${score}`;
+            timerDisplay.textContent = '🏆';
+            targetCircle.style.background = '#ff7b72';
+            circleText.textContent = '🏆';
+            actionBtn.textContent = '重新训练';
+            
+            const avgReaction = bestReaction < 999 ? bestReaction : '--';
+            alert(`体能训练完成！\n总分: ${score}\n最快反应: ${avgReaction}ms`);
+        }
+        
+        targetCircle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (gameState === 'active' && canClick) {
+                handleClick();
+            }
+        });
+        
+        targetCircle.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameState === 'active' && canClick) {
+                handleClick();
+            }
+        });
+        
+        function resetGame() {
+            score = 0;
+            round = 0;
+            bestReaction = 999;
+            gameState = 'waiting';
+            canClick = false;
+            scoreDisplay.textContent = '0';
+            bestScore.textContent = '0';
+            roundCount.textContent = '0/10';
+            timerDisplay.textContent = '--';
+            messageDisplay.textContent = '点击「开始」训练';
+            targetCircle.style.background = '#30363d';
+            circleText.textContent = '⚡';
+            actionBtn.textContent = '开始训练';
+            clearTimeout(timeoutId);
+        }
+        
+        // 重新训练
+        const originalAction = actionBtn.onclick;
+        actionBtn.onclick = function() {
+            if (actionBtn.textContent === '重新训练') {
+                resetGame();
+            } else {
+                gameAction();
+            }
+        };
+    </script>
+</body>
+</html>
