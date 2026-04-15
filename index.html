@@ -73,65 +73,147 @@
             letter-spacing: 2px;
         }
 
-        /* 电池容器 */
-        .battery-container {
-            width: 120px;
-            height: 250px;
-            border: 4px solid var(--text-main);
-            border-radius: 10px;
-            position: relative;
-            margin: 0 auto 40px auto;
+        /* ===== 电池容器 - 相机充电器风格 ===== */
+        .battery-wrapper {
             display: flex;
-            flex-direction: column-reverse; /* 从底向上堆叠 */
-            padding: 5px;
-            gap: 5px;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .battery-container {
+            width: 100px;
+            height: 200px;
+            border: 3px solid #8b949e;
+            border-radius: 6px;
+            position: relative;
+            display: flex;
+            flex-direction: column-reverse;
+            padding: 4px;
+            gap: 3px;
+            background-color: #0a0c10;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
         }
 
         .battery-container::before {
             content: '';
             position: absolute;
-            top: -15px;
+            top: -10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 40px;
-            height: 10px;
-            background-color: var(--text-main);
-            border-radius: 5px 5px 0 0;
+            width: 30px;
+            height: 8px;
+            background-color: #8b949e;
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* 电池外壳上的充电指示灯 */
+        .battery-container::after {
+            content: '⚡';
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--term-green);
+            font-size: 1rem;
+            opacity: 0;
+            animation: chargeBlink 1.5s infinite;
+        }
+
+        @keyframes chargeBlink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; text-shadow: 0 0 8px var(--term-green); }
         }
 
         .battery-level {
             width: 100%;
             flex: 1;
-            border-radius: 4px;
-            opacity: 0.2; /* 默认非活跃状态 */
-            transition: all 0.2s ease;
+            border-radius: 2px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
             color: #000;
-            font-size: 0.8rem;
+            font-size: 0.65rem;
+            background-color: #1a1f26;
+            opacity: 0.25;
+            transition: none;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* 新的逐格堆叠充电动画：仅在非 manual 模式下 */
-        .battery-container:not(.manual-mode) .battery-level {
-            animation: stackCharging 5s infinite ease-in-out;
+        /* 相机充电器逐格堆叠效果 */
+        .battery-level {
+            animation: none !important;
         }
 
-        /* 设置每格的动画延迟，实现依次亮起 */
-        .battery-level:nth-child(1) { animation-delay: 0s; }
-        .battery-level:nth-child(2) { animation-delay: 1s; }
-        .battery-level:nth-child(3) { animation-delay: 2s; }
-        .battery-level:nth-child(4) { animation-delay: 3s; }
+        /* 第一格（底部/Body）- 最先亮，保持常亮 */
+        .battery-level:nth-child(1) {
+            animation: chargeCell1 4s infinite !important;
+        }
+        /* 第二格（Mind）- 第二亮，保持常亮 */
+        .battery-level:nth-child(2) {
+            animation: chargeCell2 4s infinite !important;
+        }
+        /* 第三格（Heart）- 第三亮，保持常亮 */
+        .battery-level:nth-child(3) {
+            animation: chargeCell3 4s infinite !important;
+        }
+        /* 第四格（顶部/Soul）- 最后亮，保持常亮 */
+        .battery-level:nth-child(4) {
+            animation: chargeCell4 4s infinite !important;
+        }
 
-        /* 关键帧：从不亮到全亮，保持一段时间后重置 */
-        @keyframes stackCharging {
-            0% { opacity: 0.2; box-shadow: none; color: #000; }
-            /* 在各自的延迟时间点到达后，迅速变为活跃状态并保持 */
-            5%, 75% { opacity: 1; box-shadow: 0 0 10px currentColor; color: #fff; }
-            /* 周期结束前统一重置，准备开始下一轮堆叠 */
-            85%, 100% { opacity: 0.2; box-shadow: none; color: #000; }
+        /* 第1格：0%时暗，5%时亮起，之后一直保持高光 */
+        @keyframes chargeCell1 {
+            0%, 4% { 
+                opacity: 0.25; 
+                box-shadow: none; 
+            }
+            5%, 100% { 
+                opacity: 1; 
+                box-shadow: 0 0 12px currentColor, inset 0 0 8px rgba(255,255,255,0.3);
+            }
+        }
+
+        /* 第2格：0%-24%暗，25%时亮起，之后保持高光 */
+        @keyframes chargeCell2 {
+            0%, 24% { 
+                opacity: 0.25; 
+                box-shadow: none; 
+            }
+            25%, 100% { 
+                opacity: 1; 
+                box-shadow: 0 0 12px currentColor, inset 0 0 8px rgba(255,255,255,0.3);
+            }
+        }
+
+        /* 第3格：0%-49%暗，50%时亮起，之后保持高光 */
+        @keyframes chargeCell3 {
+            0%, 49% { 
+                opacity: 0.25; 
+                box-shadow: none; 
+            }
+            50%, 100% { 
+                opacity: 1; 
+                box-shadow: 0 0 12px currentColor, inset 0 0 8px rgba(255,255,255,0.3);
+            }
+        }
+
+        /* 第4格：0%-74%暗，75%时亮起，之后保持高光 */
+        @keyframes chargeCell4 {
+            0%, 74% { 
+                opacity: 0.25; 
+                box-shadow: none; 
+            }
+            75%, 100% { 
+                opacity: 1; 
+                box-shadow: 0 0 12px currentColor, inset 0 0 8px rgba(255,255,255,0.3);
+            }
+        }
+
+        /* 悬停时取消动画，保持手动控制 */
+        .battery-container.manual-mode .battery-level {
+            animation: none !important;
         }
 
         /* 磁贴网格 */
@@ -234,11 +316,14 @@
 
     <h1 class="main-title">5LW 专属能量补给站</h1>
 
-    <div class="battery-container" id="main-battery">
-        <div class="battery-level" style="background-color: var(--body-red);" id="bat-body">Body</div>
-        <div class="battery-level" style="background-color: var(--mind-blue);" id="bat-mind">Mind</div>
-        <div class="battery-level" style="background-color: var(--heart-yellow);" id="bat-heart">Heart</div>
-        <div class="battery-level" style="background-color: var(--soul-green);" id="bat-soul">Soul</div>
+    <!-- 电池容器 - 相机充电器风格 -->
+    <div class="battery-wrapper">
+        <div class="battery-container" id="main-battery">
+            <div class="battery-level" style="background-color: var(--body-red);" id="bat-body">Body</div>
+            <div class="battery-level" style="background-color: var(--mind-blue);" id="bat-mind">Mind</div>
+            <div class="battery-level" style="background-color: var(--heart-yellow);" id="bat-heart">Heart</div>
+            <div class="battery-level" style="background-color: var(--soul-green);" id="bat-soul">Soul</div>
+        </div>
     </div>
 
     <div class="grid-container">
@@ -270,11 +355,7 @@
     <div class="footer">
         Powered by Youth-OS | 习惯7：不断更新 —— 及时为自己输入 sudo apt --update
     </div>
-<!--
-            [=====================] 100% Complete!<br>
-            admin@Youth-OS:~$ reboot<br>
-            SYSTEM REBOOTING...
--->
+
     <script>
         const textToType = "admin@Youth-OS:~$ sudo apt install --update\n[==========================================] 100% Complete!\nadmin@Youth-OS:~$ sudo apt install habit7\n[==========================================] 100% Complete!\nadmin@Youth-OS:~$ reboot\nSYSTEM REBOOTING...\n";
         const typewriterElement = document.getElementById('typewriter');
@@ -305,13 +386,13 @@
             if (isHovering) {
                 batteryContainer.classList.add('manual-mode');
                 batElement.style.opacity = '1';
-                batElement.style.boxShadow = `0 0 15px ${batElement.style.backgroundColor}`;
+                batElement.style.boxShadow = `0 0 15px ${batElement.style.backgroundColor}, inset 0 0 8px rgba(255,255,255,0.3)`;
                 batElement.style.color = '#fff';
             } else {
                 batteryContainer.classList.remove('manual-mode');
-                batElement.style.opacity = '0.2';
-                batElement.style.boxShadow = 'none';
-                batElement.style.color = '#000';
+                batElement.style.opacity = '';
+                batElement.style.boxShadow = '';
+                batElement.style.color = '';
             }
         }
 
